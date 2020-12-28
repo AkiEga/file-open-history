@@ -5,19 +5,15 @@ import * as vscode from 'vscode';
 // import * as os from 'os';
 import * as fs from 'fs';
 
-// global variable
+// const variable
 const DUMMY_LINE_NUM:number = -1;
+
+// global variable
 let current_platform:string;
+let out_ch:vscode.OutputChannel;
 
-// function 
-function gen_date_str(){
-	let ret:string = "";
-	let date:string = new Date().toISOString();
-	ret = `[${date}]`;
-
-	return ret;
-}
-function gen_open_file_log(file_path:string, line:number){
+// private function 
+function output_history(file_path:string, line:number){
 	let ret:string = "";
 
 	// Error case
@@ -47,6 +43,11 @@ function gen_open_file_log(file_path:string, line:number){
 			// no action (ret = "";)
 			break;
 	}
+	if(ret !== ""){
+		let date:string = new Date().toISOString();
+		out_ch.appendLine(`[${date}] ${ret}`);
+	}
+
 
 	return ret;
 }
@@ -55,28 +56,23 @@ function gen_open_file_log(file_path:string, line:number){
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {	
 	// init variable
-	let past_file_path:string = "";
 	let past_line:number = DUMMY_LINE_NUM;
 	current_platform = process.platform;
 	
 	// init output ch
-	let out_ch:vscode.OutputChannel = vscode.window.createOutputChannel("Opened File");
-	let past_out_ch_str:string = "";
+	out_ch = vscode.window.createOutputChannel("File Open History(file-open-history)");
 	out_ch.show();
 
 	context.subscriptions.push(
 		vscode.window.onDidChangeTextEditorSelection((event)=>{
-			past_file_path = event?.textEditor.document.uri.fsPath;
-			past_line = event?.textEditor.selection.active.line;
-		})
-	);
-	context.subscriptions.push(
-		vscode.window.onDidChangeActiveTextEditor((event)=>{
-			let ch_str:string = gen_open_file_log(past_file_path, past_line);
-			if(ch_str !== past_out_ch_str && ch_str !== ""){	
-				out_ch.appendLine(`${gen_date_str()} ${ch_str}`);
-				past_out_ch_str = ch_str;
+			let file_path = event?.textEditor.document.uri.fsPath??"";
+			let line = event?.textEditor.selection.active.line??DUMMY_LINE_NUM;
+
+			if(line < past_line -1 || past_line +1 < line){
+				output_history(file_path, line);
 			}
+
+			past_line = line;
 		})
 	);
 }

@@ -1,7 +1,7 @@
 {
-  "name": "your-log",
-	"displayName": "your-log",
-	"description": "output logs of your actions in vscode",
+  "name": "file-open-history",
+	"displayName": "file-open-history",
+	"description": "output history of file opening actions in vscode",
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.52.0"
@@ -15,12 +15,6 @@
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [
-			{
-				"command": "your-log.helloWorld",
-				"title": "Hello World"
-			}
-		]
 	},
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
