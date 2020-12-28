@@ -2,8 +2,8 @@
 // Import the module and reference it with the alias vscode in your code below
 //import { env } from 'process';
 import * as vscode from 'vscode';
-import * as os from 'os';
-import { fstat } from 'fs';
+// import * as os from 'os';
+import * as fs from 'fs';
 
 // global variable
 const DUMMY_LINE_NUM:number = -1;
@@ -25,11 +25,9 @@ function gen_open_file_log(file_path:string, line:number){
 		return ret;
 	}
 
-	// let rootPath:string = vscode.workspace.workspaceFolders?.[0].uri.fsPath??"";
-	// let m:RegExpMatchArray|null = file_path.match(`/${rootPath}.*/`);
-	// if( m === null){
-	// 	return ret;
-	// }
+	if( fs.existsSync(file_path) === false){
+		return ret;
+	}
 	
 	// Normal case
 	switch(current_platform){
