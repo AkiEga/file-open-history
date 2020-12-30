@@ -13,7 +13,7 @@ let current_platform:string;
 let out_ch:vscode.OutputChannel;
 
 // private function 
-function output_history(file_path:string, line:number){
+export function output_history(file_path:string, line:number){
 	let ret:string = "";
 
 	// Error case
@@ -45,9 +45,9 @@ function output_history(file_path:string, line:number){
 	}
 	if(ret !== ""){
 		let date:string = new Date().toISOString();
-		out_ch.appendLine(`[${date}] ${ret}`);
+		ret = `[${date}] ${ret}`
+		out_ch.appendLine(ret);
 	}
-
 
 	return ret;
 }
