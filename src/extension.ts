@@ -12,40 +12,79 @@ const DUMMY_LINE_NUM:number = -1;
 let current_platform:string;
 let out_ch:vscode.OutputChannel;
 
-// private function 
-export function output_history(file_path:string, line:number){
-	let ret:string = "";
+// function 
+export async function get_parent_func_name(uri:vscode.Uri, line:number){
+	let matched_func_name: string = "";
+	let symbol: Array<vscode.SymbolInformation> | undefined;
+	let refFuncLoc: Array<vscode.Location> = [];
+	try{
+		symbol 
+			= <Array<any>>await  vscode.commands.executeCommand("vscode.executeDocumentSymbolProvider", uri);
+		// refFuncLoc = <vscode.Location[]>await vscode.commands.executeCommand("vscode.executeReferenceProvider", uri, selection.start);
+	}catch(e:any){
+		console.log(e);
+	}
 
+	// in a case to fail to load symbol provider
+	if (symbol === undefined) {
+		return new Promise<string>((resolve) => {
+			resolve("");
+		});
+	}
+
+	let function_symbol_kind_index: number = 11;
+	let functions = symbol.filter((elem, index, array) => {
+		return (elem.kind == function_symbol_kind_index);
+	});
+	for (let f of functions) {
+		if (f.location.range.start.line <= line) {
+			matched_func_name = f.name;
+		}
+		else {
+			break;
+		}
+	}
+	return new Promise<string>((resolve) => {
+		resolve(matched_func_name);
+	});
+}
+export async function output_history(uri:vscode.Uri, line:number){
+	let ret:string = "";
 	// Error case
 	if(line === DUMMY_LINE_NUM){
 		return ret;
 	}
 
-	if( fs.existsSync(file_path) === false){
+	if( fs.existsSync(uri.fsPath) === false){
 		return ret;
 	}
 	
 	// Normal case
+	let file_path;
 	switch(current_platform){
 		case "win32":
 			// ref)Link to a file position in Output Channel · Issue #586 · microsoft/vscode
 			// https://github.com/microsoft/vscode/issues/586
-			file_path = file_path.replace(/\\/g,"/");
-			ret = `file:///${file_path}#${line+1}`;
+			file_path = `file:///${uri.fsPath.replace(/\\/g,"/")}#${line+1}`;
 			break;
 		case "darwin":
 		case "freebsd":
 		case "linux":
 		case "openbsd":
 		case "sunos":
-			ret = `file:///${file_path}:${line+1}`;
+			file_path = `file:///${uri.fsPath}:${line+1}`;
 		default:
 			// no action (ret = "";)
 			break;
 	}
-	if(ret !== ""){
+	if(file_path !== ""){
+		let func_name:string = await get_parent_func_name(uri,line);
 		let date:string = new Date().toISOString();
-		ret = `[${date}] ${ret}`
+		if(func_name !== ""){
+			ret = `[${date}] ${file_path} func: ${func_name}`
+		}else{
+			ret = `[${date}] ${file_path}`
+		}
 		out_ch.appendLine(ret);
 	}
 
@@ -64,12 +103,12 @@ export function activate(context: vscode.ExtensionContext) {
 	out_ch.show();
 
 	context.subscriptions.push(
-		vscode.window.onDidChangeTextEditorSelection((event)=>{
-			let file_path = event?.textEditor.document.uri.fsPath??"";
+		vscode.window.onDidChangeTextEditorSelection(async (event)=>{
+			let uri = event?.textEditor.document.uri??null;
 			let line = event?.textEditor.selection.active.line??DUMMY_LINE_NUM;
 
-			if(line < past_line -1 || past_line +1 < line){
-				output_history(file_path, line);
+			if((line < past_line -1 || past_line +1 < line) && uri!==null){
+				await output_history(uri, line);
 			}
 
 			past_line = line;
