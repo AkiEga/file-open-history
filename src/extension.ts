@@ -21,7 +21,7 @@ export async function get_parent_func_name(uri:vscode.Uri, line:number){
 		symbol 
 			= <Array<any>>await  vscode.commands.executeCommand("vscode.executeDocumentSymbolProvider", uri);
 		// refFuncLoc = <vscode.Location[]>await vscode.commands.executeCommand("vscode.executeReferenceProvider", uri, selection.start);
-	}catch(e:any){
+	}catch(e){
 		console.log(e);
 	}
 

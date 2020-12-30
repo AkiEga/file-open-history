@@ -9,6 +9,7 @@ suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
 
 	test('Sample test', () => {
-		assert.strictEqual(myExtension.output_history("hogefuga",-1),"");
+		// let uri:vscode.Uri = new vscode.Uri("hogefuga");
+		// assert.strictEqual(myExtension.output_history("hogefuga",-1),"");
 	});
 });
