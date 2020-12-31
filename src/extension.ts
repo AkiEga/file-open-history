@@ -97,13 +97,22 @@ export function activate(context: vscode.ExtensionContext) {
 	// init variable
 	let past_line:number = DUMMY_LINE_NUM;
 	current_platform = process.platform;
-	
-	// init output ch
-	out_ch = vscode.window.createOutputChannel("File Open History(file-open-history)");
-	out_ch.show();
-
-	context.subscriptions.push(
-		vscode.window.onDidChangeTextEditorSelection(async (event)=>{
+	let is_enable:boolean = false;
+	let disposable = vscode.commands.registerCommand("file-open-history.start", () => {
+		// init output ch
+		out_ch = vscode.window.createOutputChannel("File Open History(file-open-history)");
+		out_ch.show();
+		is_enable = true;
+	});
+	context.subscriptions.push(disposable);
+	disposable = vscode.commands.registerCommand("file-open-history.end", () => {
+		// close output ch		
+		out_ch.hide();
+		is_enable = false;
+	});
+	context.subscriptions.push(disposable);
+	vscode.window.onDidChangeTextEditorSelection(async (event)=>{
+		if(is_enable === true){
 			let uri = event?.textEditor.document.uri??null;
 			let line = event?.textEditor.selection.active.line??DUMMY_LINE_NUM;
 
@@ -112,8 +121,10 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			past_line = line;
-		})
-	);
+		}
+	})
+
+	context.subscriptions.push(disposable);
 }
 
 // this method is called when your extension is deactivated

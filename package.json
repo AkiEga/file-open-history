@@ -12,10 +12,23 @@
 		"Other"
 	],
 	"activationEvents": [
-		"*"
+		"onCommand:file-open-history.start"
+
 	],
 	"main": "./out/extension.js",
-	"contributes": {},
+	"contributes": {
+		"commands": [
+			{
+				"command": "file-open-history.start",
+				"title": "file-open-history: Start"
+			},
+			{
+				"command": "file-open-history.end",
+				"title": "file-open-history: End"
+			}
+
+		]
+	},
 	"scripts": {
 		"vscode:publish": "vsce publish minor -p $(cat ./PersonalAccessToken.txt) --yarn",
 		"vscode:prepublish": "webpack --mode production",
