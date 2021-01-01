@@ -4,7 +4,7 @@
 	"description": "output history of file opening actions in vscode",
 	"publisher": "akiega",
 	"repository": "https://github.com/AkiEga/file-open-history.git",
-	"version": "0.4.0",
+	"version": "0.5.0",
 	"engines": {
 		"vscode": "^1.52.0"
 	},
