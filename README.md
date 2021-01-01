@@ -3,6 +3,12 @@ This extension outputs history of file opening actions in vscode"
 
 ![demo](./doc/asset/demo.gif)
 
+# Setup
+- Option1: get from Visual Studio Marketplace  
+file-open-history - Visual Studio Marketplace  
+https://marketplace.visualstudio.com/items?itemName=akiega.file-open-history  
+- Option2: get from extension sidebar in vscode. please search "file-open-history"
+
 # Usage
 ## Start (TextEditor case)
 1. Open Command pallet
