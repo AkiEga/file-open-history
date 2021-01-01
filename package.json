@@ -12,14 +12,19 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:file-open-history.start"
+		"onCommand:file-open-history.out_text.start",
+		"onCommand:file-open-history.out_ch.start"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "file-open-history.start",
-				"title": "file-open-history: Start"
+				"command": "file-open-history.out_text.start",
+				"title": "file-open-history: Start(TextEditor)"
+			},
+			{
+				"command": "file-open-history.out_ch.start",
+				"title": "file-open-history: Start(Output channel)"
 			},
 			{
 				"command": "file-open-history.end",

@@ -10,7 +10,8 @@ const DUMMY_LINE_NUM:number = -1;
 
 // global variable
 let current_platform:string;
-let out_ch:vscode.OutputChannel;
+let out_ch:vscode.OutputChannel|null;
+let out_text:vscode.TextEditor|null;
 
 // function 
 export async function get_parent_func_name(uri:vscode.Uri, line:number){
@@ -60,32 +61,46 @@ export async function output_history(uri:vscode.Uri, line:number){
 	}
 	
 	// Normal case
-	let file_path;
-	switch(current_platform){
-		case "win32":
-			// ref)Link to a file position in Output Channel · Issue #586 · microsoft/vscode
-			// https://github.com/microsoft/vscode/issues/586
-			file_path = `file:///${uri.fsPath.replace(/\\/g,"/")}#${line+1}`;
-			break;
-		case "darwin":
-		case "freebsd":
-		case "linux":
-		case "openbsd":
-		case "sunos":
-			file_path = `file:///${uri.fsPath}:${line+1}`;
-		default:
-			// no action (ret = "";)
-			break;
+	let file_path:string = "";
+	if(current_platform === "win32"){
+		// ref)Link to a file position in Output Channel · Issue #586 · microsoft/vscode
+		// https://github.com/microsoft/vscode/issues/586
+		file_path = `file:///${uri.fsPath.replace(/\\/g,"/")}`;
+	}else{
+		// case "darwin":
+		// case "freebsd":
+		// case "linux":
+		// case "openbsd":
+		// case "sunos":
+		file_path = `file:///${uri.fsPath}`;
 	}
 	if(file_path !== ""){
+		// create one line log
 		let func_name:string = await get_parent_func_name(uri,line);
 		let date:string = new Date().toISOString();
-		if(func_name !== ""){
-			ret = `[${date}] ${file_path} func: ${func_name}`
-		}else{
-			ret = `[${date}] ${file_path}`
+		// output text editor
+		if(out_text !== null){
+			out_text.edit(call=>{
+				let endLine:vscode.TextLine|undefined = out_text?.document.lineAt(out_text?.document.lineCount-1);
+				if(func_name !== ""){
+					ret = `[${date}] ${file_path}:${line+1} func: ${func_name}\n`
+				}else{
+					ret = `[${date}] ${file_path}:${line+1}\n`
+				}
+				if(endLine){
+					call.insert(endLine.range.start, ret);
+				}
+			});
 		}
-		out_ch.appendLine(ret);
+
+		// output text channel
+		if(current_platform === "win32"){
+			ret = `[${date}] ${file_path}#${line+1} func: ${func_name}\n`
+			out_ch?.appendLine(ret);
+		}else{
+			ret = `[${date}] ${file_path}:${line+1} func: ${func_name}\n`
+			out_ch?.appendLine(ret);
+		}
 	}
 
 	return ret;
@@ -95,24 +110,41 @@ export async function output_history(uri:vscode.Uri, line:number){
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {	
 	// init variable
-	let past_line:number = DUMMY_LINE_NUM;
-	current_platform = process.platform;
-	let is_enable:boolean = false;
-	let disposable = vscode.commands.registerCommand("file-open-history.start", () => {
-		// init output ch
-		out_ch = vscode.window.createOutputChannel("File Open History(file-open-history)");
-		out_ch.show();
+	let past_line:number = DUMMY_LINE_NUM; 	// selected line num
+	current_platform = process.platform;	// current platform(e.g. win32, unix)
+	let is_enable:boolean = false; 			// enable to trace file opening
+	out_ch = null;
+	out_text = null;
+
+	// register command
+	let disposable;
+	disposable = vscode.commands.registerCommand("file-open-history.out_text.start", async () => {
+		// init output texteditor		
+		let doc = await vscode.workspace.openTextDocument({language:"log"});
+		out_text = await vscode.window.showTextDocument(doc,vscode.ViewColumn.Beside,false);
+		
+		is_enable = true;
+	});
+	context.subscriptions.push(disposable);
+	disposable = vscode.commands.registerCommand("file-open-history.out_ch.start", async () => {
+		// init output ch		
+		if(out_ch === null){
+			out_ch = vscode.window.createOutputChannel("File Open History(file-open-history)");
+			out_ch.show();
+		}
 		is_enable = true;
 	});
 	context.subscriptions.push(disposable);
 	disposable = vscode.commands.registerCommand("file-open-history.end", () => {
 		// close output ch		
-		out_ch.hide();
+		out_ch?.hide();
 		is_enable = false;
 	});
 	context.subscriptions.push(disposable);
+
+	// set 
 	vscode.window.onDidChangeTextEditorSelection(async (event)=>{
-		if(is_enable === true){
+		if(is_enable === true && event.textEditor !== out_text){
 			let uri = event?.textEditor.document.uri??null;
 			let line = event?.textEditor.selection.active.line??DUMMY_LINE_NUM;
 
