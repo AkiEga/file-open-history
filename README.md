@@ -1,10 +1,17 @@
 # file-open-history README
 This extension outputs history of file opening actions in vscode"
 
+![demo](./doc/asset/demo.gif)
+
 # Usage
-## Start
+## Start (TextEditor case)
 1. Open Command pallet
-2. Type command `file-open-history: Start`
+2. Type command `file-open-history: Start(TextEdirot)`
+3. Done(will show text editor beside. You can see history of file opening)
+
+## Start (Output channel)
+1. Open Command pallet
+2. Type command `file-open-history: Start(Output channel)`
 3. Done(will show OUTPUT named "File Open History(file-open-history)". You can see history of file opening)
 
 ## End
